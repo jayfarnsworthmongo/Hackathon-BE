@@ -85,7 +85,8 @@ app.get('/ask', async (req, res) => {
 // Route to get a record from MongoDB
 app.get('/api/metrics', async (req, res) => {
   try {
-      const query = req.query.site;
+      const q = {"site_id": req.query.siteid};
+      console.log(q)
       //const query = { "site_id": "washpark" }; // Define your filter criteria
       const options = {
         sort: { "timestamp": -1 }, // Sort by timestamp in descending order
@@ -93,7 +94,7 @@ app.get('/api/metrics', async (req, res) => {
       };
   
       // Use the variable `collectionName` to specify the collection
-      const record = await db.collection("events").findOne(query, options);
+      const record = await db.collection("events").findOne(q, options);
       res.json(record);
     } catch (error) {
       res.status(500).json({ message: 'Error fetching data', error: error.message });
