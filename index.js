@@ -4,10 +4,13 @@ import express from "express";
 import axios from "axios";
 import { MongoClient } from "mongodb";
 import OpenAI from 'openai';
+import cors from "cors";
 
 
 const app = express();
 const PORT = 3000;
+app.use(cors());
+
 
 // OpenAI API client
 const openai = new OpenAI({
@@ -26,7 +29,7 @@ const client = new MongoClient(process.env.MONGODB_URI, {
   async function connectToMongoDB() {
     try {
       await client.connect();
-      db = client.db("sample_mflix"); 
+      db = client.db("equipment_monitor"); 
       console.log('Connected to MongoDB');
     } catch (error) {
       console.error('Failed to connect to MongoDB', error);
@@ -78,6 +81,24 @@ app.get('/ask', async (req, res) => {
     res.status(500).json({ error: 'Error contacting OpenAI' });
   }
 });
+
+// Route to get a record from MongoDB
+app.get('/api/metrics', async (req, res) => {
+  try {
+      const query = req.query.site;
+      //const query = { "site_id": "washpark" }; // Define your filter criteria
+      const options = {
+        sort: { "timestamp": -1 }, // Sort by timestamp in descending order
+        projection: { _id: 0 } // Exclude the _id field
+      };
+  
+      // Use the variable `collectionName` to specify the collection
+      const record = await db.collection("events").findOne(query, options);
+      res.json(record);
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching data', error: error.message });
+    }
+  });
 
 // Start the server
 app.listen(PORT, async () => {
